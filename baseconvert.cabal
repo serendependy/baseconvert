@@ -1,0 +1,23 @@
+name:                baseconvert
+version:             0.1.0.0
+synopsis:            Convert between bases
+description:         Command line utility for arbitrary base convertion
+homepage:            https://github.com/serendependy/baseconvert
+license:             BSD3
+license-file:        LICENSE
+author:              Christopher Jenkins
+maintainer:          serendependy@gmail.com
+copyright:           2016 Christopher Jenkins
+category:            CLI Tool
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable baseconvert
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , containers
+                     , optparse-applicative
+                     , errors
+
