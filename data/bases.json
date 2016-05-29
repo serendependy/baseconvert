@@ -1,0 +1,13 @@
+{
+	"bases" : [
+		{	"name" : "dec"
+		,	"alphabet" : "0123456789"
+		}
+	,	{	"name" : "hex"
+		,	"alphabet" : "0123456789abcdef"
+		}
+	,	{	"name" : "base62"
+		,	"alphabet" : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+		}
+	]
+}

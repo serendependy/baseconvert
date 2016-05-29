@@ -1,4 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
+
+import Paths_baseconvert
 
 import Control.Error.Util
 import Options.Applicative
@@ -6,6 +10,32 @@ import Options.Applicative
 import Data.List as List
 import Data.Maybe
 import Data.Map.Lazy as Map
+import qualified Data.ByteString.Lazy.Char8 as B
+import Data.Aeson
+
+data Base = Base
+  {  name     :: String
+  ,  alphabet :: String
+  }
+  deriving Show
+
+data Bases = Bases [Base]
+  deriving Show
+
+instance FromJSON Base where
+  parseJSON (Object v) = Base <$>
+    (v .: "name") <*>
+    (v .: "alphabet")
+
+  parseJSON _ = error "Not an object"
+
+instance FromJSON Bases where
+  parseJSON (Object v) = Bases <$> (v .: "bases")
+
+  parseJSON _ = error "Not an object"
+
+basesToMap :: Bases -> Map String String
+basesToMap (Bases bs) = fromList . List.map (\b -> (name b , alphabet b)) $ bs
 
 fromBase :: String -> String -> Integer
 fromBase base num = sum $
@@ -32,20 +62,9 @@ toBase base num = go num ""
     lsd :: Integer -> Int
     lsd n = fromInteger . (n `mod`) $ baseLen
 
-
 convertBases :: String -> String -> String -> String
 convertBases from to num =
   toBase to . fromBase from $ num
-
-bases :: Map String String
-bases = fromList
-  [ ("dec"
-    , "0123456789")
-  , ("hex"
-    , "0123456789abcdef")
-  , ("base62"
-    , "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
-  ]
 
 data BCOpt = BCOpt
   { baseFrom :: String
@@ -60,15 +79,26 @@ bcOpt =  BCOpt
   <*> (argument str (metavar "input"))
 
 baseConvert :: BCOpt -> IO ()
-baseConvert (BCOpt fro to num) =
-  case getFields of
+baseConvert (BCOpt fro to num) = do
+  bases <- getBases
+  case bases of
     Left msg ->
       putStrLn msg
-    Right (fro' , to') ->
-      putStrLn $ convertBases fro' to' num
+    Right bs ->
+      case getFields (basesToMap bs) of
+        Left msg ->
+          putStrLn msg
+        Right (fro' , to') ->
+          putStrLn $ convertBases fro' to' num
   where
-    getFields :: Either String (String , String)
-    getFields = do
+    getBases :: IO (Either String Bases)
+    getBases =  do
+      fileName <- getDataFileName "data/bases.json"
+      text <- readFile fileName
+      return $ (eitherDecode . B.pack $ text :: Either String Bases)
+    
+    getFields :: Map String String -> Either String (String , String)
+    getFields bases = do
       fro' <- note ("Invalid base: " ++ fro) $ Map.lookup fro bases
       to'  <- note ("Invalid base: " ++ to)  $ Map.lookup to bases
       if not (validInput fro' num)
@@ -91,5 +121,4 @@ main = execParser opts >>= baseConvert
       ( fullDesc
         <> progDesc "Convert between arbitrary bases"
         <> header "baseConvert - convert between arbitrary bases"
-        <> footer ("where bases can be " ++ (show . Map.keys $ bases))
       )

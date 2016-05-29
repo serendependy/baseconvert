@@ -12,6 +12,9 @@ category:            CLI Tool
 build-type:          Simple
 cabal-version:       >=1.10
 
+Data-Files:
+    data/bases.json
+
 executable baseconvert
   hs-source-dirs:      src
   main-is:             Main.hs
@@ -20,4 +23,5 @@ executable baseconvert
                      , containers
                      , optparse-applicative
                      , errors
-
+                     , bytestring
+                     , aeson
