@@ -25,3 +25,6 @@ executable baseconvert
                      , errors
                      , bytestring
                      , aeson
+
+  other-modules:       BaseConvert.Bases
+                     , BaseConvert.JSON
